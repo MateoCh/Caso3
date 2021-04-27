@@ -6,15 +6,15 @@ public class Seeker extends Thread
 	private String algo;
 	private String og;
 	private Cch  cch;
-	private long ref;
+	private int ceros;
 	
-	public Seeker(Sequencia pSeq, String pAlgo, String pOg, long pRef)
+	public Seeker(Sequencia pSeq, String pAlgo, String pOg, int pCeros)
 	{
 		seq=pSeq;
 		algo=pAlgo;
 		og=pOg;
 		cch=new Cch();
-		ref=pRef;
+		ceros=pCeros;
 	}
 	
 	public void run()
@@ -31,11 +31,13 @@ public class Seeker extends Thread
         	}
         	String toTry=og+conc;
         	dig = cch.getDigest(algo, toTry.getBytes());
-    		wrapped =ByteBuffer.wrap(dig);
-            aux = wrapped.getLong();
-            if(aux<ref)
+            if(cch.cumple(dig, ceros, algo))
             {
-            	System.out.println("El valor v="+conc);
+            	System.out.println("El valor v encontrado fue:"+conc);
+            	System.out.println("El hash en hexa:");
+            	cch.imprimirHexa(dig);
+            	System.out.println("El hash en binario:");
+            	cch.imprimirBin(dig);
             	synchronized(seq)
             	{
             		seq.parar();

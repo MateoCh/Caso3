@@ -21,17 +21,13 @@ public class Cch
             int ceros = Integer.parseInt(br.readLine());
             byte [] dig = getDigest(algo, cadena.getBytes());
             System.out.println("La cadena usada fue: "+cadena);
-            ByteBuffer wrapped =ByteBuffer.wrap(dig);
-            long aux = wrapped.getLong();
-            int noBits=algo.equals("SHA256")?32:64;
-            long ref= (long) Math.pow(2, noBits-ceros);
-            if(aux>ref)
+            if(!cumple(dig, ceros, algo))
             {
             	Sequencia seq = new Sequencia();
             	long startTime = System.currentTimeMillis();
             	for(int i=0;i<numThreads;i++)
             	{
-            		Seeker actSeeker= new Seeker(seq, algo, cadena, ref);
+            		Seeker actSeeker= new Seeker(seq, algo, cadena, ceros);
             		actSeeker.start();
             		actSeeker.join();
             	}
@@ -43,6 +39,8 @@ public class Cch
             	System.out.println("La cadena por defecto resultó en un hash con los ceros requeridos por lo que no se tuvo que realizar busqueda.");
             	System.out.println("Hash en hexa:");
             	imprimirHexa(dig);
+            	System.out.println("Hash en binario:");
+            	imprimirBin(dig);
             }
             
         } 
@@ -78,6 +76,56 @@ public class Cch
 			out+=Integer.toHexString(byteArray[i] & 0xff).toLowerCase();
 		}
 		System.out.println(out);
+	}
+	
+	public static void imprimirBin(byte[] byteArray)
+	{
+		String out="";
+		for(int i=0; i<byteArray.length;i++)
+		{
+			out+=String.format("%8s", Integer.toBinaryString(byteArray[i])).replace(' ', '0');
+		}
+		System.out.println(out);
+	}
+	
+	public static boolean cumple(byte[] l1, int ceros, String algo)
+	{
+		boolean rta=true;
+		int iters=ceros/8;
+		int extra=ceros-(iters*8);
+		int power=8-extra;
+		int factor=0;
+		for(int i=0;i<power;i++)
+		{
+			factor+=Math.pow(2, i);
+		}
+		int cont=0;
+		while(cont<iters&&rta)
+		{
+			if((l1[cont]& 0xff)==0)
+			{				
+				cont++;
+			}
+			else
+			{
+				rta=false;
+			}
+		}
+		if(rta)
+		{			
+			Byte act=l1[cont];
+			int comp=Byte.toUnsignedInt(act);
+//			System.out.println("Comp:"+comp+"Factor:"+factor);
+			if(extra==0||comp<=factor)
+			{
+				
+			}
+			else
+			{
+				rta=false;
+			}
+		}
+		return rta;
 	}
 
 
